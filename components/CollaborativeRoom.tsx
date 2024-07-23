@@ -41,6 +41,7 @@ const CollaborativeRoom = ({roomId,roomMetadata,users,currentUserType}:Collabora
 // use to manage Input field (mouse events)
     useEffect(() => {
         // when we change multiple time Title, simple useEffect will not update after 1st time. So we put (updateDocument) into useeffect.When something change in function it re-render the page and show updated data.
+        
         const handleClickOutside = (e: MouseEvent) => {
           if(containerRef.current && !containerRef.current.contains(e.target as Node)) {
             setEditing(false);
