@@ -28,7 +28,7 @@ export const getClerkUsers = async ({ userIds }: { userIds: string[]}) => {
 export const getDocumentUsers = async ({ roomId, currentUser, text }: { roomId: string, currentUser: string, text: string }) => {
   try {
     const room = await liveblocks.getRoom(roomId);
-
+// find all email ids except current user
     const users = Object.keys(room.usersAccesses).filter((email) => email !== currentUser);
 
     if(text.length) {

@@ -1,4 +1,4 @@
-  'use client';
+'use client';
 import { ClientSideSuspense, RoomProvider } from '@liveblocks/react/suspense'
 import Loader from './Loader'
 import Header from './Header'
@@ -9,67 +9,68 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { Input } from './ui/input';
 import { updateDocument } from '@/lib/actions/room.actions';
+import ShareModal from './ShareModal';
 
-const CollaborativeRoom = ({roomId,roomMetadata,users,currentUserType}:CollaborativeRoomProps) => {
-    const [documentTitle, setDocumentTitle] = useState(roomMetadata.title);
-    const [editing, setEditing] = useState(false);
-    const [loading, setLoading] = useState(false);
+const CollaborativeRoom = ({ roomId, roomMetadata, users, currentUserType }: CollaborativeRoomProps) => {
+  const [documentTitle, setDocumentTitle] = useState(roomMetadata.title);
+  const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-    const containerRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLDivElement>(null);
 
-    const updateTitleHandler = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if(e.key === 'Enter') {
-          setLoading(true);
-    
-          try {
-            if(documentTitle !== roomMetadata.title) {
-              const updatedDocument = await updateDocument(roomId, documentTitle);
-              
-              if(updatedDocument) {
-                setEditing(false);
-              }
-            }
-          } catch (error) {
-            console.error(error);
-          }
-    
-          setLoading(false);
-        }
-      } 
+  const updateTitleHandler = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setLoading(true);
 
-// use to manage Input field (mouse events)
-    useEffect(() => {
-        // when we change multiple time Title, simple useEffect will not update after 1st time. So we put (updateDocument) into useeffect.When something change in function it re-render the page and show updated data.
-        
-        const handleClickOutside = (e: MouseEvent) => {
-          if(containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      try {
+        if (documentTitle !== roomMetadata.title) {
+          const updatedDocument = await updateDocument(roomId, documentTitle);
+
+          if (updatedDocument) {
             setEditing(false);
-            updateDocument(roomId, documentTitle);
           }
         }
-    
-        document.addEventListener('mousedown', handleClickOutside);
-    
-        return () => {
-          document.removeEventListener('mousedown', handleClickOutside);
-        }
-      }, [roomId, documentTitle])
-    
-      useEffect(() => {
-        if(editing && inputRef.current) {
-          inputRef.current.focus();
-        }
-      }, [editing])
+      } catch (error) {
+        console.error(error);
+      }
 
-    return (
-        <RoomProvider id={roomId}>
-            <ClientSideSuspense fallback={<Loader />}>
-                <div className="collaborative-room">
-                    <Header>
-                    <div ref={containerRef} className="flex w-fit items-center justify-center gap-2">
+      setLoading(false);
+    }
+  }
+
+  // use to manage Input field (mouse events)
+  useEffect(() => {
+    // when we change multiple time Title, simple useEffect will not update after 1st time. So we put (updateDocument) into useeffect.When something change in function it re-render the page and show updated data.
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setEditing(false);
+        updateDocument(roomId, documentTitle);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [roomId, documentTitle])
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [editing])
+
+  return (
+    <RoomProvider id={roomId}>
+      <ClientSideSuspense fallback={<Loader />}>
+        <div className="collaborative-room">
+          <Header>
+            <div ref={containerRef} className="flex w-fit items-center justify-center gap-2">
               {editing && !loading ? (
-                <Input 
+                <Input
                   type="text"
                   value={documentTitle}
                   ref={inputRef}
@@ -86,7 +87,7 @@ const CollaborativeRoom = ({roomId,roomMetadata,users,currentUserType}:Collabora
               )}
 
               {currentUserType === 'editor' && !editing && (
-                <Image 
+                <Image
                   src="/assets/icons/edit.svg"
                   alt="edit"
                   width={24}
@@ -103,21 +104,29 @@ const CollaborativeRoom = ({roomId,roomMetadata,users,currentUserType}:Collabora
               {loading && <p className="text-sm  text-gray-400">saving...</p>}
             </div>
 
-                        <div className='flex w-full flex-1 justify-end gap-2 sm:gap-3'>
-                            <ActiveCollaborators />
-                            <SignedOut>
-                                <SignUpButton />
-                            </SignedOut>
-                            <SignedIn>
-                                <UserButton />
-                            </SignedIn>
-                        </div>
-                    </Header>
-                    <Editor roomId={roomId} currentUserType={currentUserType} />
-                </div>
-            </ClientSideSuspense>
-        </RoomProvider>
-    )
+            <div className='flex w-full flex-1 justify-end gap-2 sm:gap-3'>
+              <ActiveCollaborators />
+              
+              <ShareModal
+                roomId={roomId}
+                collaborators={users}
+                creatorId={roomMetadata.creatorId}
+                currentUserType={currentUserType}
+              />
+
+              <SignedOut>
+                <SignUpButton />
+              </SignedOut>
+              <SignedIn>
+                <UserButton />
+              </SignedIn>
+            </div>
+          </Header>
+          <Editor roomId={roomId} currentUserType={currentUserType} />
+        </div>
+      </ClientSideSuspense>
+    </RoomProvider>
+  )
 }
 
 export default CollaborativeRoom  
